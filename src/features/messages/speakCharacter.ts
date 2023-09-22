@@ -1,13 +1,13 @@
-import { wait } from "@/utils/wait";
-import { synthesizeVoiceApi } from "./synthesizeVoice";
-import { Viewer } from "../vrmViewer/viewer";
-import { Screenplay } from "./messages";
-import { Talk } from "./messages";
+import { wait } from '@/utils/wait'
+import { synthesizeVoiceApi } from './synthesizeVoice'
+import { Viewer } from '../vrmViewer/viewer'
+import { Screenplay } from './messages'
+import { Talk } from './messages'
 
 const createSpeakCharacter = () => {
-  let lastTime = 0;
-  let prevFetchPromise: Promise<unknown> = Promise.resolve();
-  let prevSpeakPromise: Promise<unknown> = Promise.resolve();
+  let lastTime = 0
+  let prevFetchPromise: Promise<unknown> = Promise.resolve()
+  let prevSpeakPromise: Promise<unknown> = Promise.resolve()
 
   return (
     screenplay: Screenplay,
@@ -17,35 +17,35 @@ const createSpeakCharacter = () => {
     onComplete?: () => void
   ) => {
     const fetchPromise = prevFetchPromise.then(async () => {
-      const now = Date.now();
+      const now = Date.now()
       if (now - lastTime < 1000) {
-        await wait(1000 - (now - lastTime));
+        await wait(1000 - (now - lastTime))
       }
 
       const buffer = await fetchAudio(screenplay.talk, koeiroApiKey).catch(
         () => null
-      );
-      lastTime = Date.now();
-      return buffer;
-    });
+      )
+      lastTime = Date.now()
+      return buffer
+    })
 
-    prevFetchPromise = fetchPromise;
+    prevFetchPromise = fetchPromise
     prevSpeakPromise = Promise.all([fetchPromise, prevSpeakPromise]).then(
       ([audioBuffer]) => {
-        onStart?.();
+        onStart?.()
         if (!audioBuffer) {
-          return;
+          return
         }
-        return viewer.model?.speak(audioBuffer, screenplay);
+        return viewer.model?.speak(audioBuffer, screenplay)
       }
-    );
+    )
     prevSpeakPromise.then(() => {
-      onComplete?.();
-    });
-  };
-};
+      onComplete?.()
+    })
+  }
+}
 
-export const speakCharacter = createSpeakCharacter();
+export const speakCharacter = createSpeakCharacter()
 
 export const fetchAudio = async (
   talk: Talk,
@@ -57,14 +57,21 @@ export const fetchAudio = async (
     talk.speakerY,
     talk.style,
     apiKey
-  );
-  const url = ttsVoice.audio;
+  )
 
-  if (url == null) {
-    throw new Error("Something went wrong");
+  const base64Audio = ttsVoice.audio
+
+  if (base64Audio == null) {
+    throw new Error('Something went wrong')
   }
 
-  const resAudio = await fetch(url);
-  const buffer = await resAudio.arrayBuffer();
-  return buffer;
-};
+  // Convert Base64 to ArrayBuffer
+  const binaryString = window.atob(base64Audio)
+  const len = binaryString.length
+  const bytes = new Uint8Array(len)
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i)
+  }
+
+  return bytes.buffer
+}
