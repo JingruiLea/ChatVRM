@@ -9,6 +9,7 @@ type Props = {
   ) => void;
   onClickSendButton: (event: React.MouseEvent<HTMLButtonElement>) => void;
   onClickMicButton: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  onClickStartButton: (event: React.MouseEvent<HTMLButtonElement>) => void;
 };
 export const MessageInput = ({
   userMessage,
@@ -17,6 +18,7 @@ export const MessageInput = ({
   onChangeUserMessage,
   onClickMicButton,
   onClickSendButton,
+  onClickStartButton,
 }: Props) => {
   return (
     <div className="absolute bottom-0 z-20 w-screen">
@@ -32,7 +34,7 @@ export const MessageInput = ({
             />
             <input
               type="text"
-              placeholder="聞きたいことをいれてね"
+              placeholder="你想和小微聊什么呢？"
               onChange={onChangeUserMessage}
               disabled={isChatProcessing}
               className="bg-surface1 hover:bg-surface1-hover focus:bg-surface1 disabled:bg-surface1-disabled disabled:text-primary-disabled rounded-16 w-full px-16 text-text-primary typography-16 font-bold disabled"
@@ -46,11 +48,18 @@ export const MessageInput = ({
               disabled={isChatProcessing || !userMessage}
               onClick={onClickSendButton}
             />
+            <IconButton
+              iconName="24/Announcement"              
+              className="bg-secondary hover:bg-secondary-hover active:bg-secondary-press disabled:bg-secondary-disabled"
+              isProcessing={isMicRecording}
+              disabled={isChatProcessing}
+              onClick={onClickStartButton}
+            />
           </div>
         </div>
-        <div className="py-4 bg-[#413D43] text-center text-white font-Montserrat">
+        {/* <div className="py-4 bg-[#413D43] text-center text-white font-Montserrat">
           powered by VRoid, Koemotion, ChatGPT API
-        </div>
+        </div> */}
       </div>
     </div>
   );
