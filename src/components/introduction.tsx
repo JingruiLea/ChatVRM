@@ -1,12 +1,12 @@
-import { useState, useCallback } from "react";
-import { Link } from "./link";
+import { useState, useCallback } from 'react'
+import { Link } from './link'
 
 type Props = {
-  openAiKey: string;
-  koeiroMapKey: string;
-  onChangeAiKey: (openAiKey: string) => void;
-  onChangeKoeiromapKey: (koeiromapKey: string) => void;
-};
+  openAiKey: string
+  koeiroMapKey: string
+  onChangeAiKey: (openAiKey: string) => void
+  onChangeKoeiromapKey: (koeiromapKey: string) => void
+}
 export const Introduction = ({
   openAiKey,
   koeiroMapKey,
@@ -17,17 +17,19 @@ export const Introduction = ({
 
   const handleAiKeyChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      onChangeAiKey(event.target.value);
+      onChangeAiKey(event.target.value)
     },
     [onChangeAiKey]
-  );
+  )
 
   const handleKoeiromapKeyChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      onChangeKoeiromapKey(event.target.value);
+      onChangeKoeiromapKey(event.target.value)
     },
     [onChangeKoeiromapKey]
-  );
+  )
+
+  const stylee = {}
 
   return opened ? (
     <>
@@ -48,29 +50,29 @@ export const Introduction = ({
           <div>
             3Dモデルの表示や操作には
             <Link
-              url={"https://github.com/pixiv/three-vrm"}
-              label={"@pixiv/three-vrm"}
+              url={'https://github.com/pixiv/three-vrm'}
+              label={'@pixiv/three-vrm'}
             />
             、 会話文生成には
             <Link
               url={
-                "https://openai.com/blog/introducing-chatgpt-and-whisper-apis"
+                'https://openai.com/blog/introducing-chatgpt-and-whisper-apis'
               }
-              label={"ChatGPT API"}
+              label={'ChatGPT API'}
             />
             、 音声合成には
-            <Link url={"https://koemotion.rinna.co.jp/"} label={"Koemotion"} />
+            <Link url={'https://koemotion.rinna.co.jp/'} label={'Koemotion'} />
             の
             <Link
               url={
-                "https://developers.rinna.co.jp/product/#product=koeiromap-free"
+                'https://developers.rinna.co.jp/product/#product=koeiromap-free'
               }
-              label={"Koeiromap API"}
+              label={'Koeiromap API'}
             />
             を使用しています。 詳細はこちらの
             <Link
-              url={"https://inside.pixiv.blog/2023/04/28/160000"}
-              label={"技術解説記事"}
+              url={'https://inside.pixiv.blog/2023/04/28/160000'}
+              label={'技術解説記事'}
             />
             をご覧ください。
           </div>
@@ -79,8 +81,8 @@ export const Introduction = ({
             <br />
             リポジトリ：
             <Link
-              url={"https://github.com/pixiv/ChatVRM"}
-              label={"https://github.com/pixiv/ChatVRM"}
+              url={'https://github.com/pixiv/ChatVRM'}
+              label={'https://github.com/pixiv/ChatVRM'}
             />
           </div>
         </div>
@@ -142,7 +144,7 @@ export const Introduction = ({
         <div className="my-24">
           <button
             onClick={() => {
-              setOpened(false);
+              setOpened(false)
             }}
             className="font-bold bg-secondary hover:bg-secondary-hover active:bg-secondary-press disabled:bg-secondary-disabled text-white px-24 py-8 rounded-oval"
           >
