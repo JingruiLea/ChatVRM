@@ -1,4 +1,4 @@
-import { use, useCallback, useContext, useEffect, useState } from 'react'
+import { use, useCallback, useContext, useEffect, useState,useRef} from 'react'
 import VrmViewer from '@/components/vrmViewer'
 import { ViewerContext } from '@/features/vrmViewer/viewerContext'
 import {
@@ -17,6 +17,7 @@ import { GitHubLink } from '@/components/githubLink'
 import { Meta } from '@/components/meta'
 import { getXiaoweiChatResponse } from '@/features/wukong/wukong'
 
+
 export default function Home() {
   const { viewer } = useContext(ViewerContext)
 
@@ -27,13 +28,6 @@ export default function Home() {
   const [chatProcessing, setChatProcessing] = useState(false)
   const [chatLog, setChatLog] = useState<Message[]>([])
   const [assistantMessage, setAssistantMessage] = useState('')
-  const [systemPrompt, setSystemPrompt] = useState(SYSTEM_PROMPT);
-  const [openAiKey, setOpenAiKey] = useState("");
-  const [koeiromapKey, setKoeiromapKey] = useState("");
-  const [koeiroParam, setKoeiroParam] = useState<KoeiroParam>(DEFAULT_PARAM);
-  const [chatProcessing, setChatProcessing] = useState(false);
-  const [chatLog, setChatLog] = useState<Message[]>([]);
-  const [assistantMessage, setAssistantMessage] = useState("");
   const ws = useRef<WebSocket | null>(null);
 
   useEffect(() => {
@@ -107,29 +101,24 @@ export default function Home() {
         setAssistantMessage(currentAssistantMessage);
       });
     });
-  
-  
-      const currentAssistantMessage = message
-      handleSpeakAi(audio, aiTalks[0], () => {
-        setAssistantMessage(currentAssistantMessage)
-      })
-    })
+        //断连后重连
+        ws.current.addEventListener('close', (event) => {
+          const host = window.location.hostname
+          console.log('WebSocket连接已断开')
+          setTimeout(() => {
+            console.log('WebSocket重新连接')
+            ws.current = new WebSocket(`ws://${host}:5001/websocket`)
+          }, 1000)
+        });
 
-    //断连后重连
-    ws.current.addEventListener('close', (event) => {
-      const host = window.location.hostname
-      console.log('WebSocket连接已断开')
-      setTimeout(() => {
-        console.log('WebSocket重新连接')
-        ws.current = new WebSocket(`ws://${host}:5001/websocket`)
-      }, 1000)
-    })
+        return () => {
+          // 在组件卸载时关闭WebSocket连接
+          ws.current?.close()
+        }
 
-    return () => {
-      // 在组件卸载时关闭WebSocket连接
-      ws.current?.close()
-    }
-  }, [ws]) // 空数组确保只在组件挂载和卸载时执行
+
+    },[ws])
+
 
   /**
    * アシスタントとの会話を行う
