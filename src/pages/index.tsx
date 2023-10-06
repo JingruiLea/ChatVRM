@@ -76,12 +76,13 @@ export default function Home() {
 
   useEffect(() => {
     const host = window.location.hostname
-    const socket = new WebSocket('ws://' + host + ':5001/websocket')
+    var socket = new WebSocket(`ws://${host}:5001/websocket`)
 
     // 监听连接建立事件
     socket.addEventListener('open', (event) => {
       console.log('WebSocket连接已建立')
     })
+
     socket.addEventListener('message', (event) => {
       console.log('接收到消息', event.data)
       const data = JSON.parse(event.data)
@@ -95,6 +96,15 @@ export default function Home() {
       handleSpeakAi(audio, aiTalks[0], () => {
         setAssistantMessage(currentAssistantMessage)
       })
+    })
+
+    //断连后重连
+    socket.addEventListener('close', (event) => {
+      console.log('WebSocket连接已断开')
+      setTimeout(() => {
+        console.log('WebSocket重新连接')
+        socket = new WebSocket(`ws://${host}:5001/websocket`)
+      }, 1000)
     })
 
     return () => {

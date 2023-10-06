@@ -1,6 +1,7 @@
 export async function getXiaoweiChatResponse(msg: string, type: string) {
-  const wukong_host = process.env.WUKONG_HOST || ''
-  const wukong_port = process.env.WUKONG_PORT || ''
+  const wukong_host = process.env.WUKONG_HOST || window.location.hostname
+  const wukong_port = process.env.WUKONG_PORT || '5001'
+  console.log(wukong_host, wukong_port)
   const wukong_url = `http://${wukong_host}:${wukong_port}/`
 
   const params = new URLSearchParams()
