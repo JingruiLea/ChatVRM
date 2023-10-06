@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 type Props = {
   isChatProcessing: boolean;
   onChatProcessStart: (text: string) => void;
+  onChatStartMethod: (text: string) => void;
 };
 
 /**
@@ -15,6 +16,7 @@ type Props = {
 export const MessageInputContainer = ({
   isChatProcessing,
   onChatProcessStart,
+  onChatStartMethod,
 }: Props) => {
   const [userMessage, setUserMessage] = useState("");
   const [speechRecognition, setSpeechRecognition] =
@@ -58,6 +60,11 @@ export const MessageInputContainer = ({
     onChatProcessStart(userMessage);
   }, [onChatProcessStart, userMessage]);
 
+  const handleClickStartButton = useCallback(() => {
+    onChatStartMethod(userMessage);
+  }, []);
+
+
   useEffect(() => {
     const SpeechRecognition =
       window.webkitSpeechRecognition || window.SpeechRecognition;
@@ -67,7 +74,7 @@ export const MessageInputContainer = ({
       return;
     }
     const recognition = new SpeechRecognition();
-    recognition.lang = "ja-JP";
+    recognition.lang = "zh-CN";
     recognition.interimResults = true; // 認識の途中結果を返す
     recognition.continuous = false; // 発言の終了時に認識を終了する
 
@@ -91,6 +98,7 @@ export const MessageInputContainer = ({
       onChangeUserMessage={(e) => setUserMessage(e.target.value)}
       onClickMicButton={handleClickMicButton}
       onClickSendButton={handleClickSendButton}
+      onClickStartButton={handleClickStartButton}
     />
   );
 };
