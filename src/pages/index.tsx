@@ -1,4 +1,4 @@
-import { use, useCallback, useContext, useEffect, useState } from 'react'
+import { use, useCallback, useContext, useEffect, useState,useRef} from 'react'
 import VrmViewer from '@/components/vrmViewer'
 import { ViewerContext } from '@/features/vrmViewer/viewerContext'
 import {
@@ -17,6 +17,7 @@ import { GitHubLink } from '@/components/githubLink'
 import { Meta } from '@/components/meta'
 import { getXiaoweiChatResponse } from '@/features/wukong/wukong'
 
+
 export default function Home() {
   const { viewer } = useContext(ViewerContext)
 
@@ -27,6 +28,7 @@ export default function Home() {
   const [chatProcessing, setChatProcessing] = useState(false)
   const [chatLog, setChatLog] = useState<Message[]>([])
   const [assistantMessage, setAssistantMessage] = useState('')
+  const ws = useRef<WebSocket | null>(null);
 
   useEffect(() => {
     if (window.localStorage.getItem('chatVRMParams')) {
@@ -76,42 +78,47 @@ export default function Home() {
 
   useEffect(() => {
     const host = window.location.hostname
-    var socket = new WebSocket(`ws://${host}:5001/websocket`)
-
+    ws.current = new WebSocket(`ws://${host}:5001/websocket`);
+    
     // 监听连接建立事件
-    socket.addEventListener('open', (event) => {
-      console.log('WebSocket连接已建立')
-    })
-
-    socket.addEventListener('message', (event) => {
-      console.log('接收到消息', event.data)
-      const data = JSON.parse(event.data)
+    ws.current.addEventListener('open', (event) => {
+      console.log('WebSocket连接已建立');
+    });
+    ws.current.addEventListener('message', (event) => {
+      const data = JSON.parse(event.data);
       // 在这里处理接收到的消息逻辑
       const message = data.text
       const audio = data.audio
+      const aiTalks = textsToScreenplay([message], koeiroParam);
+      console.log("aitalks",aiTalks)
 
-      const aiTalks = textsToScreenplay([message], koeiroParam)
       // 文ごとに音声を生成 & 再生、返答を表示
-      const currentAssistantMessage = message
-      handleSpeakAi(audio, aiTalks[0], () => {
-        setAssistantMessage(currentAssistantMessage)
-      })
-    })
+      const currentAssistantMessage = message;
+      setAssistantMessage(currentAssistantMessage);
 
-    //断连后重连
-    socket.addEventListener('close', (event) => {
-      console.log('WebSocket连接已断开')
-      setTimeout(() => {
-        console.log('WebSocket重新连接')
-        socket = new WebSocket(`ws://${host}:5001/websocket`)
-      }, 1000)
-    })
+      handleSpeakAi(audio,aiTalks[0], () => {
+        console.log("执行")
+        setAssistantMessage(currentAssistantMessage);
+      });
+    });
+        //断连后重连
+        ws.current.addEventListener('close', (event) => {
+          const host = window.location.hostname
+          console.log('WebSocket连接已断开')
+          setTimeout(() => {
+            console.log('WebSocket重新连接')
+            ws.current = new WebSocket(`ws://${host}:5001/websocket`)
+          }, 1000)
+        });
 
-    return () => {
-      // 在组件卸载时关闭WebSocket连接
-      socket.close()
-    }
-  }, []) // 空数组确保只在组件挂载和卸载时执行
+        return () => {
+          // 在组件卸载时关闭WebSocket连接
+          ws.current?.close()
+        }
+
+
+    },[ws])
+
 
   /**
    * アシスタントとの会話を行う
@@ -313,6 +320,7 @@ export default function Home() {
         koeiroParam={koeiroParam}
         assistantMessage={assistantMessage}
         koeiromapKey={koeiromapKey}
+        style={{display:"none"}}
         onChangeAiKey={setOpenAiKey}
         onChangeSystemPrompt={setSystemPrompt}
         onChangeChatLog={handleChangeChatLog}
