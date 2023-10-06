@@ -14,6 +14,7 @@ type Props = {
   koeiroParam: KoeiroParam;
   assistantMessage: string;
   koeiromapKey: string;
+  style?: React.CSSProperties;
   onChangeSystemPrompt: (systemPrompt: string) => void;
   onChangeAiKey: (key: string) => void;
   onChangeChatLog: (index: number, text: string) => void;
@@ -29,6 +30,7 @@ export const Menu = ({
   koeiroParam,
   assistantMessage,
   koeiromapKey,
+  style,
   onChangeSystemPrompt,
   onChangeAiKey,
   onChangeChatLog,
@@ -100,7 +102,7 @@ export const Menu = ({
 
   return (
     <>
-      <div className="absolute z-10 m-24">
+      <div className="absolute z-10 m-24" style={style}>
         <div className="grid grid-flow-col gap-[8px]">
           <IconButton
             iconName="24/Menu"
