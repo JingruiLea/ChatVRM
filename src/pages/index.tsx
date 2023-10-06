@@ -1,115 +1,111 @@
-import { use, useCallback, useContext, useEffect, useState } from "react";
-import VrmViewer from "@/components/vrmViewer";
-import { ViewerContext } from "@/features/vrmViewer/viewerContext";
+import { use, useCallback, useContext, useEffect, useState } from 'react'
+import VrmViewer from '@/components/vrmViewer'
+import { ViewerContext } from '@/features/vrmViewer/viewerContext'
 import {
   Message,
   textsToScreenplay,
   Screenplay,
-} from "@/features/messages/messages";
-import { speakCharacter } from "@/features/messages/speakCharacter";
-import { MessageInputContainer } from "@/components/messageInputContainer";
-import { SYSTEM_PROMPT } from "@/features/constants/systemPromptConstants";
-import { KoeiroParam, DEFAULT_PARAM } from "@/features/constants/koeiroParam";
-import { getChatResponseStream } from "@/features/chat/openAiChat";
-import { Introduction } from "@/components/introduction";
-import { Menu } from "@/components/menu";
-import { GitHubLink } from "@/components/githubLink";
-import { Meta } from "@/components/meta";
-import { getXiaoweiChatResponse } from "@/features/wukong/wukong";
+} from '@/features/messages/messages'
+import { speakCharacter } from '@/features/messages/speakCharacter'
+import { MessageInputContainer } from '@/components/messageInputContainer'
+import { SYSTEM_PROMPT } from '@/features/constants/systemPromptConstants'
+import { KoeiroParam, DEFAULT_PARAM } from '@/features/constants/koeiroParam'
+import { getChatResponseStream } from '@/features/chat/openAiChat'
+import { Introduction } from '@/components/introduction'
+import { Menu } from '@/components/menu'
+import { GitHubLink } from '@/components/githubLink'
+import { Meta } from '@/components/meta'
+import { getXiaoweiChatResponse } from '@/features/wukong/wukong'
 
 export default function Home() {
-  const { viewer } = useContext(ViewerContext);
+  const { viewer } = useContext(ViewerContext)
 
-  const [systemPrompt, setSystemPrompt] = useState(SYSTEM_PROMPT);
-  const [openAiKey, setOpenAiKey] = useState("");
-  const [koeiromapKey, setKoeiromapKey] = useState("");
-  const [koeiroParam, setKoeiroParam] = useState<KoeiroParam>(DEFAULT_PARAM);
-  const [chatProcessing, setChatProcessing] = useState(false);
-  const [chatLog, setChatLog] = useState<Message[]>([]);
-  const [assistantMessage, setAssistantMessage] = useState("");
+  const [systemPrompt, setSystemPrompt] = useState(SYSTEM_PROMPT)
+  const [openAiKey, setOpenAiKey] = useState('')
+  const [koeiromapKey, setKoeiromapKey] = useState('')
+  const [koeiroParam, setKoeiroParam] = useState<KoeiroParam>(DEFAULT_PARAM)
+  const [chatProcessing, setChatProcessing] = useState(false)
+  const [chatLog, setChatLog] = useState<Message[]>([])
+  const [assistantMessage, setAssistantMessage] = useState('')
 
   useEffect(() => {
-    if (window.localStorage.getItem("chatVRMParams")) {
+    if (window.localStorage.getItem('chatVRMParams')) {
       const params = JSON.parse(
-        window.localStorage.getItem("chatVRMParams") as string
-      );
-      setSystemPrompt(params.systemPrompt);
-      setKoeiroParam(params.koeiroParam);
-      setChatLog(params.chatLog);
+        window.localStorage.getItem('chatVRMParams') as string
+      )
+      setSystemPrompt(params.systemPrompt)
+      setKoeiroParam(params.koeiroParam)
+      setChatLog(params.chatLog)
     }
-  }, []);
+  }, [])
 
   useEffect(() => {
     process.nextTick(() =>
       window.localStorage.setItem(
-        "chatVRMParams",
+        'chatVRMParams',
         JSON.stringify({ systemPrompt, koeiroParam, chatLog })
       )
-    );
-  }, [systemPrompt, koeiroParam, chatLog]);
+    )
+  }, [systemPrompt, koeiroParam, chatLog])
 
   const handleChangeChatLog = useCallback(
     (targetIndex: number, text: string) => {
       const newChatLog = chatLog.map((v: Message, i) => {
-        return i === targetIndex ? { role: v.role, content: text } : v;
-      });
+        return i === targetIndex ? { role: v.role, content: text } : v
+      })
 
-      setChatLog(newChatLog);
+      setChatLog(newChatLog)
     },
     [chatLog]
-  );
+  )
 
   /**
    * 文ごとに音声を直列でリクエストしながら再生する`
    */
   const handleSpeakAi = useCallback(
     async (
-      audio:string,
+      audio: string,
       screenplay: Screenplay,
       onStart?: () => void,
       onEnd?: () => void
     ) => {
-      speakCharacter(audio,screenplay, viewer, koeiromapKey, onStart, onEnd);
+      speakCharacter(audio, screenplay, viewer, koeiromapKey, onStart, onEnd)
     },
     [viewer, koeiromapKey]
-  );
+  )
 
   useEffect(() => {
-    const socket = new WebSocket('ws://192.168.31.98:5001/websocket');
-    
+    const host = window.location.hostname
+    const socket = new WebSocket('ws://' + host + ':5001/websocket')
+
     // 监听连接建立事件
     socket.addEventListener('open', (event) => {
-      console.log('WebSocket连接已建立');
-    });
+      console.log('WebSocket连接已建立')
+    })
     socket.addEventListener('message', (event) => {
-      console.log('接收到消息',event.data)
-      const data = JSON.parse(event.data);
+      console.log('接收到消息', event.data)
+      const data = JSON.parse(event.data)
       // 在这里处理接收到的消息逻辑
       const message = data.text
       const audio = data.audio
 
-      const aiTalks = textsToScreenplay([message], koeiroParam);
+      const aiTalks = textsToScreenplay([message], koeiroParam)
       // 文ごとに音声を生成 & 再生、返答を表示
-      const currentAssistantMessage = message;
-      handleSpeakAi(audio,aiTalks[0], () => {
-        setAssistantMessage(currentAssistantMessage);
-      });
-    });
-  
-  
+      const currentAssistantMessage = message
+      handleSpeakAi(audio, aiTalks[0], () => {
+        setAssistantMessage(currentAssistantMessage)
+      })
+    })
+
     return () => {
       // 在组件卸载时关闭WebSocket连接
-      socket.close();
-    };
-  }, []); // 空数组确保只在组件挂载和卸载时执行
-  
-
-
+      socket.close()
+    }
+  }, []) // 空数组确保只在组件挂载和卸载时执行
 
   /**
    * アシスタントとの会話を行う
    */
-
 
   const handleSendChat = useCallback(
     async (text: string) => {
@@ -118,44 +114,46 @@ export default function Home() {
       //   return;
       // }
 
-      const newMessage = text;
+      const newMessage = text
 
-      if (newMessage == null) return;
+      if (newMessage == null) return
 
-      setChatProcessing(true);
+      setChatProcessing(true)
       // ユーザーの発言を追加して表示
       const messageLog: Message[] = [
         ...chatLog,
-        { role: "user", content: newMessage },
-      ];
-      setChatLog(messageLog);
+        { role: 'user', content: newMessage },
+      ]
+      setChatLog(messageLog)
 
       // Chat GPTへ
       const messages: Message[] = [
         {
-          role: "system",
+          role: 'system',
           content: systemPrompt,
         },
         ...messageLog,
-      ];
+      ]
 
-      const xiaowei_res = await getXiaoweiChatResponse(newMessage,"text").catch((e) => {
-        console.error(e);
-        return null;
-      });
+      const xiaowei_res = await getXiaoweiChatResponse(
+        newMessage,
+        'text'
+      ).catch((e) => {
+        console.error(e)
+        return null
+      })
       const message = xiaowei_res?.message
       const audio = xiaowei_res?.audio
       if (message == null) {
-        setChatProcessing(false);
-        return;
+        setChatProcessing(false)
+        return
       }
-      const aiTalks = textsToScreenplay([message], koeiroParam);
+      const aiTalks = textsToScreenplay([message], koeiroParam)
       // 文ごとに音声を生成 & 再生、返答を表示
-      const currentAssistantMessage = message;
-      handleSpeakAi(audio,aiTalks[0], () => {
-        setAssistantMessage(currentAssistantMessage);
-      });
-
+      const currentAssistantMessage = message
+      handleSpeakAi(audio, aiTalks[0], () => {
+        setAssistantMessage(currentAssistantMessage)
+      })
 
       // const stream = await getChatResponseStream(messages, openAiKey).catch(
       //   (e) => {
@@ -231,61 +229,60 @@ export default function Home() {
       // アシスタントの返答をログに追加
       const messageLogAssistant: Message[] = [
         ...messageLog,
-        { role: "assistant", content: message },
-      ];
+        { role: 'assistant', content: message },
+      ]
 
-      setChatLog(messageLogAssistant);
-      setChatProcessing(false);
+      setChatLog(messageLogAssistant)
+      setChatProcessing(false)
     },
     [systemPrompt, chatLog, handleSpeakAi, openAiKey, koeiroParam]
-  );
-
+  )
 
   const handleStartCommand = useCallback(
     async (text: string) => {
+      const newMessage = text
 
-      const newMessage = text;
+      if (newMessage == null) return
 
-      if (newMessage == null) return;
-
-      setChatProcessing(true);
+      setChatProcessing(true)
       // ユーザーの発言を追加して表示
       const messageLog: Message[] = [
         ...chatLog,
-        { role: "user", content: newMessage },
-      ];
-      setChatLog(messageLog);
+        { role: 'user', content: newMessage },
+      ]
+      setChatLog(messageLog)
 
-
-      const xiaowei_res = await getXiaoweiChatResponse("","start").catch((e) => {
-        console.error(e);
-        return null;
-      });
+      const xiaowei_res = await getXiaoweiChatResponse('', 'start').catch(
+        (e) => {
+          console.error(e)
+          return null
+        }
+      )
       const message = xiaowei_res?.message
       const audio = xiaowei_res?.audio
       if (message == null) {
-        setChatProcessing(false);
-        return;
+        setChatProcessing(false)
+        return
       }
-      const aiTalks = textsToScreenplay([message], koeiroParam);
+      const aiTalks = textsToScreenplay([message], koeiroParam)
       // 文ごとに音声を生成 & 再生、返答を表示
-      const currentAssistantMessage = message;
-      handleSpeakAi(audio,aiTalks[0], () => {
-        setAssistantMessage(currentAssistantMessage);
-      });
+      const currentAssistantMessage = message
+      handleSpeakAi(audio, aiTalks[0], () => {
+        setAssistantMessage(currentAssistantMessage)
+      })
       const messageLogAssistant: Message[] = [
         ...messageLog,
-        { role: "assistant", content: message },
-      ];
+        { role: 'assistant', content: message },
+      ]
 
-      setChatLog(messageLogAssistant);
-      setChatProcessing(false);
+      setChatLog(messageLogAssistant)
+      setChatProcessing(false)
     },
     [systemPrompt, chatLog, handleSpeakAi, openAiKey, koeiroParam]
-  );
+  )
 
   return (
-    <div className={"font-M_PLUS_2"}>
+    <div className={'font-M_PLUS_2'}>
       <Meta />
       <Introduction
         openAiKey={openAiKey}
@@ -316,5 +313,5 @@ export default function Home() {
       />
       {/* <GitHubLink /> */}
     </div>
-  );
+  )
 }
