@@ -88,11 +88,13 @@ export default function Home() {
       // 在这里处理接收到的消息逻辑
       const message = data.text
       const audio = data.audio
-
       const aiTalks = textsToScreenplay([message], koeiroParam);
       console.log("aitalks",aiTalks)
+
       // 文ごとに音声を生成 & 再生、返答を表示
       const currentAssistantMessage = message;
+      setAssistantMessage(currentAssistantMessage);
+
       handleSpeakAi(audio,aiTalks[0], () => {
         console.log("执行")
         setAssistantMessage(currentAssistantMessage);
